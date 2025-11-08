@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import FastAPI, Depends, HTTPException, Path
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -32,6 +33,24 @@ and let the framework (FastAPI) inject them automatically when needed.'''
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+class TodoCreate(BaseModel):
+    title: str = Field(min_length=3)
+    description: str = Field(min_length=3, max_length=100)
+    priority: int = Field(default=0, gt=0, le=5)
+    complete: bool = Field(default=False)
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "Title",
+                "description": "Description",
+                "priority": 0,
+                "complete": False
+            }
+        }
+    }
+
+
 @app.get("/todos", status_code=status.HTTP_200_OK)
 # async def get_todos(db: Session = Depends(get_db)):
 async def get_todos(db: db_dependency):
@@ -47,3 +66,10 @@ async def get_todo(db: db_dependency, todo_id: int = Path(gt=0)):
     if todo is not None:
         return todo
     raise HTTPException(status_code=404, detail='Todo not found!')
+
+
+@app.post("/todos/add_todo", status_code=status.HTTP_201_CREATED)
+async def add_todo(db: db_dependency, todo_req: TodoCreate):
+    todo_model = Todos(**todo_req.model_dump())
+    db.add(todo_model)
+    db.commit()
