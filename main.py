@@ -73,3 +73,19 @@ async def add_todo(db: db_dependency, todo_req: TodoCreate):
     todo_model = Todos(**todo_req.model_dump())
     db.add(todo_model)
     db.commit()
+
+
+@app.put("/todos/{todo_id}", status_code=status.HTTP_200_OK)
+async def update_todo(db: db_dependency, todo_req: TodoCreate, todo_id: int = Path(gt=0)):
+    todo = db.query(Todos).filter(Todos.id == todo_id).first()
+    if todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found!")
+
+    todo.title = todo_req.title
+    todo.description = todo_req.description
+    todo.priority = todo_req.priority
+    todo.complete = todo_req.complete
+
+    db.commit()
+    # reloads the latest version of that object from DB
+    db.refresh(todo)
