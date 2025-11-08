@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
+from starlette import status
 
 # ORM models -> database tables
 import models
@@ -31,8 +32,18 @@ and let the framework (FastAPI) inject them automatically when needed.'''
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@app.get("/todos")
+@app.get("/todos", status_code=status.HTTP_200_OK)
 # async def get_todos(db: Session = Depends(get_db)):
 async def get_todos(db: db_dependency):
     todos = db.query(Todos).all()
-    return todos
+    if todos is not None:
+        return todos
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todos not found!")
+
+
+@app.get("/todos/{todo_id}", status_code=status.HTTP_200_OK)
+async def get_todo(db: db_dependency, todo_id: int = Path(gt=0)):
+    todo = db.query(Todos).filter(Todos.id == todo_id).first()
+    if todo is not None:
+        return todo
+    raise HTTPException(status_code=404, detail='Todo not found!')
