@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # DB URI (/// -> relative path)
-SQLALCHEMY_DATABASE_URI = 'sqlite:///todos.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///todosapp.db'
 
 # engine: core interface to the DB, manages connection pool and interacts with directly to the DB (connects FastAPIs to the DB)
 engine = create_engine(SQLALCHEMY_DATABASE_URI, connect_args={"check_same_thread": False})
