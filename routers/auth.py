@@ -1,7 +1,14 @@
 import re
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from passlib.context import CryptContext
 from pydantic import BaseModel, field_validator
+from sqlalchemy.orm import Session
+from starlette import status
+
+from database import SessionLocal
+from models import User
 
 router = APIRouter()
 
@@ -36,6 +43,48 @@ class UserCreate(BaseModel):
         return password
 
 
-@router.get("/auth")
-async def auth():
-    return {"message": "User authenticated"}
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Dependency Injection
+# Session - connection to the database for a single request
+db_dependency = Annotated[Session, Depends(get_db)]
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+
+@router.post("/auth/add_user")
+async def add_user(user_req: UserCreate, db: db_dependency):
+    # Check if the user already exists
+    existing_user = db.query(User).filter((User.username == user_req.username) | (User.email == user_req.email)).first()
+    if existing_user:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists.")
+
+    # Hash the password
+    password_hash = hash_password(user_req.password)
+    new_user = User(
+        username=user_req.username,
+        email=user_req.email,
+        first_name=user_req.first_name,
+        last_name=user_req.last_name,
+        hashed_password=password_hash,
+        role=user_req.role
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": f"{new_user.username} added successfully.",
+        "user_id": new_user.id
+    }
