@@ -69,6 +69,7 @@ async def add_user(user_req: UserCreate, db: db_dependency):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists.")
 
+    '''
     # Hash the password
     password_hash = hash_password(user_req.password)
     new_user = User(
@@ -79,6 +80,12 @@ async def add_user(user_req: UserCreate, db: db_dependency):
         hashed_password=password_hash,
         role=user_req.role
     )
+    '''
+
+    user_data = user_req.model_dump(exclude={"password"})
+    hashed_password = hash_password(user_req.password)
+    user_data["hashed_password"] = hashed_password
+    new_user = User(**user_data)
 
     db.add(new_user)
     db.commit()
