@@ -1,7 +1,12 @@
+import os
 import re
+from datetime import timedelta, datetime, timezone
 from typing import Annotated
 
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
@@ -9,6 +14,12 @@ from starlette import status
 
 from database import SessionLocal
 from models import User
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 router = APIRouter()
 
@@ -95,3 +106,41 @@ async def add_user(user_req: UserCreate, db: db_dependency):
         "message": f"{new_user.username} added successfully.",
         "user_id": new_user.id
     }
+
+
+def authenticate_user(db: db_dependency, username: str, password: str):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        return False
+    if not pwd_context.verify(password, user.hashed_password):
+        return False
+    return user
+
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+@router.post("/auth/token")
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):
+    # Authenticate the user
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password, authentication failed.",
+        )
+
+    # Create access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username, "id": user.id},
+        expires_delta=access_token_expires
+    )
+
+    # Return token
+    return {"access_token": access_token, "token_type": "bearer"}
