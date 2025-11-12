@@ -54,6 +54,11 @@ class UserCreate(BaseModel):
         return password
 
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -125,7 +130,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
     return encoded_jwt
 
 
-@router.post("/auth/token")
+@router.post("/auth/token", response_model=TokenResponse)
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):
     # Authenticate the user
     user = authenticate_user(db, form_data.username, form_data.password)
