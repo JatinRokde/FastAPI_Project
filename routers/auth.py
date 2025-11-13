@@ -21,7 +21,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"]
+)
 
 
 class UserCreate(BaseModel):
@@ -72,7 +75,7 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 def hash_password(password: str):
