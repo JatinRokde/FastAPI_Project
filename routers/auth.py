@@ -5,8 +5,8 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
@@ -72,13 +72,14 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def hash_password(password: str):
     return pwd_context.hash(password)
 
 
-@router.post("/auth/add_user")
+@router.post("/add_user")
 async def add_user(user_req: UserCreate, db: db_dependency):
     # Check if the user already exists
     existing_user = db.query(User).filter((User.username == user_req.username) | (User.email == user_req.email)).first()
@@ -130,7 +131,21 @@ def create_access_token(data: dict, expires_delta: timedelta):
     return encoded_jwt
 
 
-@router.post("/auth/token", response_model=TokenResponse)
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if not username or not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token.")
+
+        return {'username': username, 'id': user_id}
+
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token.")
+
+
+@router.post("/token", response_model=TokenResponse)
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):
     # Authenticate the user
     user = authenticate_user(db, form_data.username, form_data.password)
