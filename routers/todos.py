@@ -50,8 +50,11 @@ class TodoCreate(BaseModel):
 
 @router.get("/todos", status_code=status.HTTP_200_OK)
 # async def get_todos(db: Session = Depends(get_db)):
-async def get_todos(db: db_dependency):
-    todos = db.query(Todos).all()
+async def get_todos(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication Failed!")
+
+    todos = db.query(Todos).filter(Todos.user_id == user.id).all()
     if todos is not None:
         return todos
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todos not found!")
