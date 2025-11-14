@@ -8,7 +8,8 @@ from starlette import status
 # ORM models -> database tables
 # DB connection object in database.py
 from database import SessionLocal
-from models import Todos
+from models import Todos, User
+from .auth import get_current_user
 
 router = APIRouter()
 
@@ -25,6 +26,8 @@ def get_db():
 and let the framework (FastAPI) inject them automatically when needed.'''
 # Dependency Injection
 db_dependency = Annotated[Session, Depends(get_db)]
+# User Dependency Injection
+user_dependency = Annotated[User, Depends(get_current_user)]
 
 
 class TodoCreate(BaseModel):
