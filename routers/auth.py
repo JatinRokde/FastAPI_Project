@@ -145,7 +145,9 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: db
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
-        if not username or not user_id:
+        role: str = payload.get("role")
+
+        if not username or not user_id or not role:
             raise credentials_exception
 
     except JWTError:
@@ -170,7 +172,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "id": user.id},
+        data={"sub": user.username, "id": user.id, 'role': user.role},
         expires_delta=access_token_expires
     )
 
