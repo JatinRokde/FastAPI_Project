@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_equal_or_not_equal():
     assert 3 == 3
     assert 3 != 1
@@ -32,3 +35,24 @@ def test_list():
     assert 7 not in num_list
     assert all(num_list)
     assert not any(any_list)
+
+
+class Student:
+    def __init__(self, first_name: str, last_name: str, major: str, years: str):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.major = major
+        self.years = years
+
+
+@pytest.fixture
+def student():
+    return Student('Test', 'User', 'Mathematics', '1990')
+
+
+def test_person_initialization(student):
+    s = Student('Test', 'User', 'Mathematics', '1990')
+    assert student.first_name == 'Test'
+    assert student.last_name == 'User'
+    assert student.major == 'Mathematics'
+    assert student.years == '1990'
