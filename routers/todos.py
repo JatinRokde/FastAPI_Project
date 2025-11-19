@@ -5,11 +5,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette import status
 
+from .auth import get_current_user
 # ORM models -> database tables
 # DB connection object in database.py
-from database import SessionLocal
-from models import Todos, User
-from .auth import get_current_user
+from ..database import SessionLocal
+from ..models import Todos, User
 
 router = APIRouter()
 
@@ -75,7 +75,7 @@ async def get_todo(user: user_dependency, db: db_dependency, todo_id: int = Path
 async def add_todo(user: user_dependency, db: db_dependency, todo_req: TodoCreate):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication Failed!")
-    todo_model = Todos(**todo_req.model_dump(), user_id = user.id)
+    todo_model = Todos(**todo_req.model_dump(), user_id=user.id)
     db.add(todo_model)
     db.commit()
 

@@ -1,5 +1,5 @@
 from database import SessionLocal
-from models import Todos
+from .models import Todos
 
 
 def seed_todos():

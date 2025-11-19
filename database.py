@@ -1,8 +1,9 @@
 # create_engine: Creates connection to the DB
-from sqlalchemy import create_engine
+import os
 
 from dotenv import load_dotenv
-import os
+from sqlalchemy import create_engine
+
 load_dotenv()
 
 # declarative_base: ORM models (tables) in a class-based way

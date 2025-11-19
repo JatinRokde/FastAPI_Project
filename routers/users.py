@@ -7,9 +7,9 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from starlette import status
 
-from database import SessionLocal
-from models import User
 from .auth import get_current_user
+from ..database import SessionLocal
+from ..models import User
 
 router = APIRouter(
     prefix="/user",

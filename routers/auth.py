@@ -12,8 +12,8 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from starlette import status
 
-from database import SessionLocal
-from models import User
+from ..database import SessionLocal
+from ..models import User
 
 load_dotenv()
 
