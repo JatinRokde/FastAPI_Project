@@ -19,3 +19,18 @@ def test_get_todo(test_user, test_todo):
     assert todo["priority"] == 3
     assert todo["complete"] is False
     assert todo["user_id"] == test_user.id
+
+
+def test_get_single_todo(test_user, test_todo):
+    response = client.get(f"/todos/{test_todo.id}")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    todo = response.json()
+
+    assert todo["id"] == test_todo.id
+    assert todo["title"] == test_todo.title
+    assert todo["description"] == test_todo.description
+    assert todo["priority"] == test_todo.priority
+    assert todo["complete"] == test_todo.complete
+    assert todo["user_id"] == test_user.id
