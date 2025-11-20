@@ -7,20 +7,13 @@ from starlette import status
 
 from .auth import get_current_user
 # ORM models -> database tables
-# DB connection object in database.py
-from ..database import SessionLocal
+from ..database import get_db
 from ..models import Todos, User
 
-router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter(
+    prefix="/todos",
+    tags=["todos"]
+)
 
 '''Dependency Injection (DI) is a design pattern where you define dependencies (like DB, Auth, Config) separately,
 and let the framework (FastAPI) inject them automatically when needed.'''

@@ -5,23 +5,13 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from .auth import get_current_user
-from ..database import SessionLocal
+from ..database import get_db
 from ..models import Todos, User
 
 router = APIRouter(
     prefix="/admin",
     tags=["admin"]
 )
-
-
-# DB dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[User, Depends(get_current_user)]

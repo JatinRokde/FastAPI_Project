@@ -12,7 +12,7 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from starlette import status
 
-from ..database import SessionLocal
+from ..database import get_db
 from ..models import User
 
 load_dotenv()
@@ -60,14 +60,6 @@ class UserCreate(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # Dependency Injection
