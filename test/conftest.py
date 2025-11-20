@@ -57,7 +57,8 @@ def test_user():
     yield user
 
     db = TestingSessionLocal()
-    db.query(User).filter(User.id == 1).delete()
+    db.query(Todos).delete()
+    db.query(User).delete()
     db.commit()
     db.close()
 
@@ -80,7 +81,8 @@ def test_todo(test_user):
 
     yield todo
 
-    db.delete(todo)
+    db = TestingSessionLocal()
+    db.query(Todos).delete()  # delete ALL todos
     db.commit()
     db.close()
 
