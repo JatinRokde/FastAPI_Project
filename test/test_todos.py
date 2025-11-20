@@ -74,3 +74,12 @@ def test_update_todo(test_todo):
     assert todos["description"] == updated_payload["description"]
     assert todos["priority"] == updated_payload["priority"]
     assert todos["complete"] == updated_payload["complete"]
+
+
+def test_delete_todo(test_todo):
+    todo_id = test_todo.id
+    response = client.delete(f"/todos/{todo_id}")
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    get_todo = client.get(f"/todos/{todo_id}")
+    assert get_todo.status_code == status.HTTP_404_NOT_FOUND
