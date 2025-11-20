@@ -11,7 +11,6 @@ from ..database import get_db
 from ..models import Todos, User
 
 router = APIRouter(
-    prefix="/todos",
     tags=["todos"]
 )
 
