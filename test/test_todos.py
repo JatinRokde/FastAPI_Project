@@ -54,3 +54,23 @@ def test_add_todo(test_user):
     assert created_todo["description"] == payload["description"]
     assert created_todo["priority"] == payload["priority"]
     assert created_todo["complete"] == payload["complete"]
+
+
+def test_update_todo(test_todo):
+    todo_id = test_todo.id
+    updated_payload = {
+        "title": "Updated Title",
+        "description": "Updated Description",
+        "priority": 5,
+        "complete": True
+    }
+
+    response = client.put(f"/todos/{todo_id}", json=updated_payload)
+
+    assert response.status_code == status.HTTP_200_OK
+    get_todo = client.get(f"/todos/{todo_id}")
+    todos = get_todo.json()
+    assert todos["title"] == updated_payload["title"]
+    assert todos["description"] == updated_payload["description"]
+    assert todos["priority"] == updated_payload["priority"]
+    assert todos["complete"] == updated_payload["complete"]
