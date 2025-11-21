@@ -1,4 +1,5 @@
 import pytest
+from passlib.context import CryptContext
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -8,6 +9,8 @@ from ..database import get_db
 from ..main import app
 from ..models import User, Todos
 from ..routers.auth import get_current_user
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
@@ -38,13 +41,15 @@ def override_get_db():
 def test_user():
     db = TestingSessionLocal()
 
+    hashed = pwd_context.hash("oldpassword")
+
     user = User(
         id=1,
         username="test_user",
         email="test@example.com",
         first_name="Test",
         last_name="User",
-        hashed_password="$2b$12$fakefakefakefakefakefakefake",
+        hashed_password=hashed,
         role="admin",
         is_active=True
     )
